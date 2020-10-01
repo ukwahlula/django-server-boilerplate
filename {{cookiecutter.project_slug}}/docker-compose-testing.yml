@@ -1,0 +1,100 @@
+version: "2.4"
+
+volumes:
+  postgres_data_testing:
+  redis_data_testing:
+  static_data_testing:
+  media_data_testing:
+
+services:
+  postgres:
+    image: postgres:10.5-alpine
+    volumes:
+      - postgres_data_testing:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB={{cookiecutter.db_name}}
+      - POSTGRES_PASSWORD={{cookiecutter.db_password}}
+      - POSTGRES_USER={{cookiecutter.db_user}}
+    healthcheck:
+      test: "PGPASSWORD={{cookiecutter.db_password}} psql --host 127.0.0.1 --dbname {{cookiecutter.db_name}} --username {{cookiecutter.db_user}} --quiet --no-align --tuples-only -c 'SELECT 1;'"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.7.14-alpine
+    ports:
+      - "5672:5672"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      timeout: 5s
+      interval: 5s
+      retries: 5
+
+  redis:
+    image: redis:5.0-alpine
+    volumes:
+      - redis_data_testing:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  django-base: &django-base
+    build:
+      context: .
+      dockerfile: ./compose/Dockerfile
+    env_file:
+      - ./envsets/.env
+    volumes:
+      - .:/server
+      - media_data_testing:/server/config/server_media
+      - static_data_testing:/server/config/server_static
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  celeryworker:
+    <<: *django-base
+    command: celery -A config worker -l INFO --without-gossip --without-mingle --without-heartbeat -Q push,flow,emails,sms
+
+  celerybeat:
+    <<: *django-base
+    command: celery -A config beat --pidfile="/celery.pid" --schedule="/celery.schedule"
+
+  django:
+    <<: *django-base
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      celeryworker:
+        condition: service_started
+      celerybeat:
+        condition: service_started
+    healthcheck:
+      test: "curl --fail 127.0.0.1:8000 || exit 1"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    command: ./compose/testing/start.sh
+
+  nginx:
+    image: nginx:1.15-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./compose/testing/app.nginx.conf:/etc/nginx/conf.d/app.conf
+      - media_data_testing:/server/config/server_media
+      - static_data_testing:/server/config/server_static
+    depends_on:
+      django:
+        condition: service_healthy

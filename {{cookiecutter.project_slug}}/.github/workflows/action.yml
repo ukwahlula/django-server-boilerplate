@@ -1,0 +1,81 @@
+name: GitHub Actions
+on: [create, push]
+jobs:
+  ci:
+    name: Continuous integration
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.test
+      DJANGO_DEBUG: true
+      SECRET_KEY: secret
+      ALLOWED_HOSTS: '*'
+      DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/{{cookiecutter.db_name}} # pragma: allowlist secret
+      CACHE_REDIS_LOCATION: redis://127.0.0.1:6379/0
+      CELERY_BROKER_URL: redis://127.0.0.1:6379/1
+      CELERY_BACKEND_RESULTS: redis://127.0.0.1:6379/2
+      DJANGO_LOG_LEVEL: INFO
+      PGPASSWORD: postgres # pragma: allowlist secret
+    services:
+      postgres:
+        image: postgres:10
+        env:
+          POSTGRES_PASSWORD: postgres # pragma: allowlist secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:4
+        ports:
+          - 6379:6379
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    - name: Install Python dependencies
+      run: |
+        pip install -r requirements/dev.txt
+        pip install codecov
+    - name: Run Tests
+      run: |
+        psql -h localhost -U postgres -c "CREATE DATABASE {{cookiecutter.db_name}}" && python manage.py migrate && psql -h localhost -U postgres -c "DROP DATABASE {{cookiecutter.db_name}}"
+        psql -h localhost -U postgres -c "CREATE DATABASE {{cookiecutter.db_name}}" && python manage.py makemigrations --dry-run --check
+        make test
+  cd:
+    name: Continuous delivery
+    runs-on: ubuntu-latest
+    needs: ci
+    if: |
+      github.event_name == 'create' && github.event.ref_type == 'tag' ||
+      (github.event_name == 'push' && (
+        endsWith(github.event.ref, '/master') ||
+        endsWith(github.event.ref, '/develop')
+      ))
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - name: Install Dependencies
+      run: |
+        pip install fabric==2.5.0
+        pip install patchwork==1.0.1
+        pip install boto3==1.14.0
+    - name: Deploy
+      run: bash .github/workflows/deploy.sh
+      env:
+        TESTING_SSH_PRIVATE_KEY: ${{ secrets.TESTING_SSH_PRIVATE_KEY }}
+        TESTING_SSH_HOST: ${{ secrets.TESTING_SSH_HOST }}
+        TESTING_SSH_FOLDER_PATH: ${{ secrets.TESTING_SSH_FOLDER_PATH }}

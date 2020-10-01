@@ -1,0 +1,12 @@
+{
+  "project_name": "Django Rest API Server Boilerplate",
+  "project_slug": "server",
+  "db_name": "server_db",
+  "db_user": "postgres",
+  "db_password": "",
+  "domain_testing_instance": "127.0.0.1",
+  "timezone": "Europe/London",
+  "_copy_without_render": [
+    "*.html"
+  ]
+}

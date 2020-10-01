@@ -1,0 +1,35 @@
+{% load i18n static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+</head>
+<body>
+
+    {% block header %}
+    {% if user_first_name %}
+    <p>{% trans "Dear" %} {{user_first_name}},</p>
+    {% else %}
+    <p>{% trans "Dear user" %},</p>
+    {% endif %}
+    {% endblock %}
+    <br/>
+
+    {% block content %}
+     <p>{{body |safe}}</p>
+    {% endblock %}
+    <br/>
+
+    {% block footer %}
+    <p>Yours sincerely,</p>
+    <p>{{team}}</p>
+    {% endblock %}
+    <br/>
+
+    <p>© {{team}}. All rights reserved.</p>
+</body>
+</html>

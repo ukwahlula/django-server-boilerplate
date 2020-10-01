@@ -1,0 +1,5 @@
+celerybeat.pid
+celerybeat-schedule
+
+*.py[cod]
+__pycache__
