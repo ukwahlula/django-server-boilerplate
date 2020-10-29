@@ -40,9 +40,11 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: ~/.cache/pip
+        {% raw %}
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
+        {% endraw %}
     - name: Install Python dependencies
       run: |
         pip install -r requirements/dev.txt
@@ -76,6 +78,8 @@ jobs:
     - name: Deploy
       run: bash .github/workflows/deploy.sh
       env:
+        {% raw %}
         TESTING_SSH_PRIVATE_KEY: ${{ secrets.TESTING_SSH_PRIVATE_KEY }}
         TESTING_SSH_HOST: ${{ secrets.TESTING_SSH_HOST }}
         TESTING_SSH_FOLDER_PATH: ${{ secrets.TESTING_SSH_FOLDER_PATH }}
+        {% endraw %}
