@@ -1,6 +1,5 @@
 from django.core.mail.backends.base import BaseEmailBackend
 from django.core.mail.backends.smtp import EmailBackend
-from django.utils.encoding import smart_str
 
 from .models import Email
 

@@ -1,4 +1,3 @@
-from django.contrib.auth.models import Group, Permission
 from django.core.management.base import BaseCommand
 
 from apps.cms.models import Content

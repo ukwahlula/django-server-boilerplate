@@ -1,12 +1,10 @@
 from django.contrib.auth import login, logout
-from django.utils.crypto import get_random_string
 from rest_framework import generics, serializers
 from rest_framework.response import Response
 
-from apps.sms.choices import SmsType
-from apps.sms.generic import Sms
-
+from ..models import User
 from ..serializers import signin
+from ..signals import phone_verification
 
 
 class SignInView(generics.GenericAPIView):
