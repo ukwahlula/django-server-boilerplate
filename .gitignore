@@ -7,15 +7,6 @@
 *.py[cod]
 __pycache__
 
-# Logs
-*.log.*
-*.log
-
-# Cache
-.cache
-.pytest_cache/
-.sass-cache
-
 # Sublime
 *.tmlanguage.cache
 *.tmPreferences.cache
@@ -30,23 +21,6 @@ __pycache__
 *.swp
 *.swo
 
-# Celery
-celerybeat-schedule
-celerybeat.pid
-
-# Translations
-*.mo
-*.pot
-
 # Virtual environments
 .env
 env
-
-# Tests and coverage
-htmlcov/
-coverage/
-.coverage
-
-# Static data
-server_media/
-server_static/
