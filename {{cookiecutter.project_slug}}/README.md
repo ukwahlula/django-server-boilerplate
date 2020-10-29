@@ -16,6 +16,11 @@ Install git on your system https://git-scm.com/book/en/v2/Getting-Started-Instal
 ```
 git clone ...
 cd {{cookiecutter.project_slug}}
+
+or
+
+git init
+git remote add origin ...
 ```
 
 ## Run using docker
@@ -92,7 +97,6 @@ make install
 
 ```
 createdb {{cookiecutter.db_name}}
-python manage.py migrate
 ```
 
 ### Start dev server:
