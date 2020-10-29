@@ -13,7 +13,7 @@ class UserAdmin(AuthUserAdmin):
         (_("Important dates"), {"fields": ("created_date", "updated_date", "last_login")}),
         (
             _("Admin Django Access and Permissions"),
-            {"fields": ("is_superuser", "is_staff", "is_active", "groups", "user_permissions")},
+            {"fields": ("is_superuser", "is_staff", "is_active", "is_2fa_enabled", "groups", "user_permissions")},
         ),
         (
             _("Access codes"),

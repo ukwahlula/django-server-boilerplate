@@ -20,6 +20,8 @@ class User(GenericUUIDMixin, AbstractUser):
         _("Phone Verification Code"), max_length=255, unique=True, null=True, blank=True, db_index=True
     )
 
+    is_2fa_enabled = models.BooleanField(_("Is 2fa enabled"), default=False)
+
     avatar = models.ForeignKey(
         "storage.Image", verbose_name=_("Avatar"), on_delete=models.SET_NULL, null=True, blank=True
     )
