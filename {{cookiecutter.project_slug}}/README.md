@@ -78,7 +78,7 @@ source env/bin/activate
 
 ```
 cp envsets/local.env envsets/.env
-export $(xargs < envsets/.env)
+export envsets/.env
 ```
 
 ### Install project requirements:
